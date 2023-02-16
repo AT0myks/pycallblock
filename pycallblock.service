@@ -1,0 +1,10 @@
+[Unit]
+Description=pycallblock
+
+[Service]
+ExecStart=/home/example/.local/bin/pycallblock -b /home/example/pycallblock/block.csv
+Restart=always
+User=example
+
+[Install]
+WantedBy=multi-user.target
