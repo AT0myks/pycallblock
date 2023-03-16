@@ -150,16 +150,21 @@ class Callblock:
         _LOGGER.info(f"Receiving call: {call}")
         reason = self.block_reason(call)
         if reason is not None:
-            await self.block_call(call)
+            wav = await self.block_call(call)
             _LOGGER.info(f"{call} blocked because: {reason}")
+        else:
+            wav = None
         self._log_call(call, reason is not None)
+        return wav
 
     async def mesg_callback(self, event):
         if "MESG" in event.data:
             nb = int(event.data["MESG"][-2:], 16)
-            _LOGGER.info(f"Unread messages: {nb}")
+            msg = f"Unread messages: {nb}"
         else:
-            _LOGGER.info("No more unread messages")
+            msg = "No more unread messages"
+        _LOGGER.info(msg)
+        return msg
 
     async def dtmf_callback(self, dtmf):
         ...
@@ -290,8 +295,8 @@ async def _main():
     async with Modem(args.device) as modem:
         pycallblock = Callblock(
             modem,
-            options['filter_type'],
-            options['filter_list'],
+            options["filter_type"],
+            options["filter_list"],
             workdir,
             db.cursor(),
             options
