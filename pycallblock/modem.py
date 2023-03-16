@@ -164,7 +164,7 @@ class Event:
         if " = " not in data:
             return cls(data, bytes_)
         dict_ = {}
-        for part in re.split("\n+", data):
+        for part in re.split("[\r\n]+", data):
             key, val = part.split(" = ")
             dict_[key] = val
         return cls(dict_, bytes_)
