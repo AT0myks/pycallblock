@@ -712,7 +712,11 @@ class Modem:
                 bytes_ = await self.read()
             except asyncio.CancelledError:
                 break
-            event = Event.from_bytes(bytes_)
+            try:
+                event = Event.from_bytes(bytes_)
+            except ValueError:
+                _LOGGER.exception(f"Could not parse event data: {bytes_!r}")
+                continue
             _LOGGER.debug(repr(event))
             if event.is_ring:
                 await self.ring_callback(event)
