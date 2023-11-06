@@ -53,7 +53,7 @@ class Callblock:
         self._silence = options.get("silence")
         self._timezone = options.get("timezone")
         self._running = False
-    
+
     @property
     def running(self):
         return self._running

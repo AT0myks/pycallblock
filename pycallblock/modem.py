@@ -93,7 +93,7 @@ class Call:
     @property
     def name(self):
         return self._name
-    
+
     @property
     def timestamp(self):
         return self._timestamp
@@ -101,7 +101,7 @@ class Call:
     @property
     def datetime(self):
         return datetime_from_ns(self._timestamp)
-    
+
     @property
     def is_private(self):
         return self._number in ('P', 'O')
@@ -124,7 +124,7 @@ class Event:
     @property
     def data(self):
         return self._data
-    
+
     @property
     def raw(self):
         return self._raw
@@ -192,7 +192,7 @@ class CommandResponse:
     @property
     def result_code(self):
         return self._result_code
-    
+
     @property
     def raw(self):
         return self._raw
@@ -276,7 +276,7 @@ class Modem:
     async def __aenter__(self):
         await self.open()
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
@@ -295,7 +295,7 @@ class Modem:
     @property
     def silence_seconds(self):
         return self._silence_seconds
-    
+
     @silence_seconds.setter
     def silence_seconds(self, value):
         self._silence_seconds = value
@@ -303,7 +303,7 @@ class Modem:
     @property
     def _header(self):
         return self._s3 + self._s4
-    
+
     @property
     def _trailer(self):
         return self._s3 + self._s4
@@ -557,7 +557,7 @@ class Modem:
             return False
         await self.send(f"+VGR={rx_gain}")
         if (await self.send("+VRX")).result_code != ResultCode.CONNECT:
-            _LOGGER.error(f"Could not start voice reception")
+            _LOGGER.error("Could not start voice reception")
             return False
         self._state = State.VOICE_RECEIVE
         self._stop_event = None
@@ -570,7 +570,7 @@ class Modem:
             return False
         await self.send([f"+VGR={rx_gain}", f"+VGT={tx_gain}"])
         if (await self.send("+VTR")).result_code != ResultCode.CONNECT:
-            _LOGGER.error(f"Could not start voice duplex")
+            _LOGGER.error("Could not start voice duplex")
             return False
         self._state = State.VOICE_DUPLEX
         self._stop_event = None
@@ -586,7 +586,7 @@ class Modem:
             return False
         await self.send(f"+VGT={tx_gain}")
         if (await self.send("+VTX")).result_code != ResultCode.CONNECT:
-            _LOGGER.error(f"Could not start voice transmit")
+            _LOGGER.error("Could not start voice transmit")
             return False
         self._state = State.VOICE_TRANSMIT
         self._stop_event = None
@@ -644,7 +644,7 @@ class Modem:
         # *67 US
         await self.send(f"DT{number}")
         return await self.start_voice_duplex(wav, max_duration, tx_gain, rx_gain)
-    
+
     async def stop_voice(self):
         self._stop_event = "stop"
 
@@ -664,22 +664,22 @@ class Modem:
 
     async def dtmf_callback(self, dtmf):
         ...
-    
+
     async def silence_callback(self):
         ...
 
     def set_ring_callback(self, func):
         self.ring_callback = func
-    
+
     def set_call_callback(self, func):
         self.call_callback = func
-        
+
     def set_mesg_callback(self, func):
         self.mesg_callback = func
-    
+
     def set_dtmf_callback(self, func):
         self.dtmf_callback = func
-    
+
     def set_silence_callback(self, func):
         self.silence_callback = func
 
@@ -687,13 +687,14 @@ class Modem:
         if self._event_loop is not None:
             _LOGGER.error("Event loop is already running")
             return
+
         def done_callback(event_loop_task):
             if event_loop_task._exception is not None:
                 self._event_loop = None
                 self.start_event_loop()
         self._event_loop = self.create_background_task(self.event_loop(), "event_loop")
         self._event_loop.add_done_callback(done_callback)
-    
+
     async def stop_event_loop(self):
         if self._event_loop is None:
             _LOGGER.error("Event loop is already stopped")
@@ -723,7 +724,7 @@ class Modem:
                 _LOGGER.info("Received shielded code: " + get_dsc_label(event.data[1]))
             else:
                 _LOGGER.warning(f"Unknown event data: {event.data!r}")
-    
+
     def create_background_task(self, coro, name=None):
         def done_callback(task):
             try:
@@ -756,7 +757,7 @@ def datetime_from_ns(nanoseconds):
 
 def silence(seconds=1, framerate=8000):
     """Return bytes that represent approximately `seconds` seconds of silence.
-    
+
     Only for 8 bit unsigned audio.
     """
     return b'\x80' * int(seconds * framerate)
