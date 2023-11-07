@@ -321,6 +321,9 @@ class Modem:
             _LOGGER.error(err)
             self._writer.close()
             raise TimeoutError(err) from None
+        _LOGGER.debug(f"Device: {self._device!r}")
+        _LOGGER.debug(f"{await self.get_masked_firmware_id_code()=}")
+        _LOGGER.debug(f"{await self.get_product_manufacturer()=}")
         self._running = True
 
     async def close(self):
@@ -403,6 +406,12 @@ class Modem:
         self._s3 = self.DEFAULT_S3
         self._s4 = self.DEFAULT_S4
 
+    async def get_masked_firmware_id_code(self):
+        return await self.get("I3")
+
+    async def get_product_manufacturer(self):
+        return await self.get("+GMI")
+
     async def get_info(self):
         """Get some info about the modem."""
         return {
@@ -414,12 +423,12 @@ class Modem:
             "country_code_supported": (await self.get("+GCI=?")).strip("()").split(','),
             # Same as +GMR, +FREV? and +FMR?, also called Product Revision.
             # Only I3 and +GMR work in every mode and I3 doesn't need to be parsed.
-            "masked_firmware_id_code": await self.get("I3"),
+            "masked_firmware_id_code": await self.get_masked_firmware_id_code(),
             "mode_current": self._mode,
             "mode_supported": (await self.get("+FCLASS=?")).split(','),
             "product_code": await self.get("I0"),
             # Same as +FMI? and +FMFR? but works in every mode.
-            "product_manufacturer": await self.get("+GMI"),
+            "product_manufacturer": await self.get_product_manufacturer(),
             # Same as +FMM? and +FMDL? but works in every mode.
             "product_model": await self.get("+GMM"),
         }
