@@ -343,6 +343,20 @@ class Modem:
             data += await self.read(1)
         return data
 
+    async def read_until_trailer(self, timeout=None):
+        """Read until the data ends with trailer or the timeout expires."""
+        data = b''
+
+        async def read():
+            nonlocal data
+            while not data.endswith(self._trailer.encode()):
+                data += await self.read()
+        try:
+            await asyncio.wait_for(read(), timeout)
+        except asyncio.TimeoutError:
+            _LOGGER.debug("Timed out waiting for trailer")
+        return data
+
     async def write(self, data):
         if isinstance(data, str):
             data = data.encode()
@@ -712,6 +726,8 @@ class Modem:
                 bytes_ = await self.read()
             except asyncio.CancelledError:
                 break
+            if not bytes_.endswith(self._trailer.encode()):
+                bytes_ += await self.read_until_trailer(.01)
             try:
                 event = Event.from_bytes(bytes_)
             except ValueError:
