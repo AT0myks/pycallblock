@@ -63,7 +63,10 @@ class Callblock:
         if self._block_action is None:
             await self._modem.set_mode(Mode.DATA)
         elif self._block_action == BlockAction.FAX_MACHINE:
-            await self._modem.set_mode(Mode.FAX_CLASS_2)
+            if Mode.FAX_CLASS_2.value in self._modem.supported_modes:
+                await self._modem.set_mode(Mode.FAX_CLASS_2)
+            else:
+                await self._modem.set_mode(Mode.FAX_CLASS_1)
         else:
             await self._modem.set_mode(Mode.VOICE)
             await self._modem.send("AT+VSM=1")
@@ -133,6 +136,10 @@ class Callblock:
             voice = await self._modem.start_voice_transmit(self._voice_duration)
             if voice and self._audio_file is not None:
                 await self._modem.send_audio_file(self._audio_file)
+        elif self._block_action == BlockAction.FAX_MACHINE:
+            if self._modem.mode in (Mode.FAX_CLASS_1, Mode.FAX_CLASS_1_0):
+                result = await self._modem.read_until_result()  # Read 'OK'
+                _LOGGER.debug(f"{result=}")
         if voice:
             await self._modem.voice_end()
         _LOGGER.info("Hanging up")

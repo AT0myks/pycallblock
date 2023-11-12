@@ -478,7 +478,7 @@ class Modem:
         return (await self.send(f"AT+VCID={int(bool_)}")).is_ok
 
     async def pick_up(self):
-        if self._mode == Mode.FAX_CLASS_2:
+        if self._mode in (Mode.FAX_CLASS_1, Mode.FAX_CLASS_1_0, Mode.FAX_CLASS_2):
             await self.send("ATA")
         elif self._mode == Mode.VOICE:
             await self.send("+VLS=1")
