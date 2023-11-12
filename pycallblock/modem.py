@@ -266,6 +266,7 @@ class Modem:
         self._silence = False
         self._silence_seconds = None
         self._mode = None
+        self._supported_modes = None
         self._last_dtmf = None
         self._write_lock = asyncio.Lock()
         self._play_queue = asyncio.Queue()
@@ -287,6 +288,10 @@ class Modem:
     @property
     def mode(self):
         return self._mode
+
+    @property
+    def supported_modes(self):
+        return self._supported_modes
 
     @property
     def state(self):
@@ -324,6 +329,8 @@ class Modem:
         _LOGGER.debug(f"Device: {self._device!r}")
         _LOGGER.debug(f"{await self.get_masked_firmware_id_code()=}")
         _LOGGER.debug(f"{await self.get_product_manufacturer()=}")
+        self._supported_modes = await self.get_supported_modes()
+        _LOGGER.debug(f"{self._supported_modes=}")
         self._running = True
 
     async def close(self):
@@ -412,6 +419,9 @@ class Modem:
     async def get_product_manufacturer(self):
         return await self.get("+GMI")
 
+    async def get_supported_modes(self):
+        return (await self.get("+FCLASS=?")).split(',')
+
     async def get_info(self):
         """Get some info about the modem."""
         return {
@@ -425,7 +435,7 @@ class Modem:
             # Only I3 and +GMR work in every mode and I3 doesn't need to be parsed.
             "masked_firmware_id_code": await self.get_masked_firmware_id_code(),
             "mode_current": self._mode,
-            "mode_supported": (await self.get("+FCLASS=?")).split(','),
+            "mode_supported": self._supported_modes,
             "product_code": await self.get("I0"),
             # Same as +FMI? and +FMFR? but works in every mode.
             "product_manufacturer": await self.get_product_manufacturer(),
