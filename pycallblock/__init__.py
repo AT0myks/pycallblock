@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 from .modem import Modem, Mode
 from .util import set_up_db, wav_duration
 
-__version__ = "1.0.2"
+__version__ = "1.1.0"
 
 _LOGGER = logging.getLogger("pycallblock")
 _LOGGER.addHandler(logging.NullHandler())
