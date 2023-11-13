@@ -140,6 +140,10 @@ class Callblock:
             if self._modem.mode in (Mode.FAX_CLASS_1, Mode.FAX_CLASS_1_0):
                 result = await self._modem.read_until_result()  # Read 'OK'
                 _LOGGER.debug(f"{result=}")
+        elif self._block_action is None:
+            # Some modems need a delay between going off and on-hook.
+            # See https://github.com/AT0myks/pycallblock/issues/3.
+            await asyncio.sleep(1)
         if voice:
             await self._modem.voice_end()
         _LOGGER.info("Hanging up")
