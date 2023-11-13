@@ -241,11 +241,11 @@ class MyCallblock(Callblock):
     async def mesg_callback(self, event):  # awaited in the modem's event loop
         # Choose what happens when you receive a MESG event
 
-    async def dtmf_callback(self, dtmf):  # runs as a task
+    async def dtmf_callback(self, dtmf, call):  # runs as a task
         # Choose what happens when you receive a DTMF during a call
 
-    async def silence_callback(self):  # runs as a task
-        # Choose what happens when silence has been detected
+    async def silence_callback(self, call):  # runs as a task
+        # Choose what happens when silence has been detected during a call
 ```
 In case you want to reuse the same CLI and options, two functions are available:
 ```py

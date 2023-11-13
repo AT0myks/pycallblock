@@ -261,6 +261,7 @@ class Modem:
         self._state = None
         self._running = False
         self._event_loop = None
+        self._call = None
         self._stop_event = None
         self._background_tasks = set()
         self._silence = False
@@ -495,7 +496,7 @@ class Modem:
         if code == '/':  # Start of DTMF tone shielding
             self._last_dtmf = code
         elif code == '~' and isinstance(self._last_dtmf, DTMF):
-            self.create_background_task(self.dtmf_callback(self._last_dtmf), "dtmf_callback")
+            self.create_background_task(self.dtmf_callback(self._last_dtmf, self._call), "dtmf_callback")
             self._last_dtmf = None
         elif code in (item.value for item in DTMF) and self._last_dtmf == '/':
             self._last_dtmf = DTMF(code)
@@ -580,7 +581,7 @@ class Modem:
             if not self._silence or not sd_on:  # Reset conditions
                 start = time.monotonic()
             elif sd_on and time.monotonic() - start > sec:
-                self.create_background_task(self.silence_callback(), "silence_callback")
+                self.create_background_task(self.silence_callback(self._call), "silence_callback")
                 start = time.monotonic()
             await asyncio.sleep(.1)
 
@@ -695,10 +696,10 @@ class Modem:
     async def mesg_callback(self, event):
         ...
 
-    async def dtmf_callback(self, dtmf):
+    async def dtmf_callback(self, dtmf, call):
         ...
 
-    async def silence_callback(self):
+    async def silence_callback(self, call):
         ...
 
     def set_ring_callback(self, func):
@@ -745,6 +746,7 @@ class Modem:
                 bytes_ = await self.read()
             except asyncio.CancelledError:
                 break
+            # self._state = State.PROCESSING_EVENT
             if not bytes_.endswith(self._trailer.encode()):
                 bytes_ += await self.read_until_trailer(.01)
             try:
@@ -756,7 +758,9 @@ class Modem:
             if event.is_ring:
                 await self.ring_callback(event)
             elif event.is_call:
-                await self.call_callback(Call.from_event(event))
+                self._call = Call.from_event(event)
+                await self.call_callback(self._call)
+                self._call = None
             elif event.is_message_event:
                 await self.mesg_callback(event)
             elif event.is_shielded_code:

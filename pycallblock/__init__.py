@@ -173,10 +173,10 @@ class Callblock:
         _LOGGER.info(msg)
         return msg
 
-    async def dtmf_callback(self, dtmf):
+    async def dtmf_callback(self, dtmf, call):
         ...
 
-    async def silence_callback(self):
+    async def silence_callback(self, call):
         if (file := random_file(self._workdir / SUBDIR_PLAY)) is not None:
             await self._modem.send_audio_file(file)
 
